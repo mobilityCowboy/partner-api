@@ -1,0 +1,665 @@
+swagger: '2.0'
+info:
+  version: 'v1'
+  title: Liftago Public API
+  contact: {}
+host: api.liftago.com
+basePath: /v1.0/partners/DefaultParameterValue
+schemes:
+- http
+consumes:
+- application/json
+produces:
+- application/json
+paths:
+  /rides/{rideId}/cancel:
+    post:
+      description: Cancels ride
+      summary: RidesCancelByRideId_POST
+      tags:
+      - rides
+      operationId: RidesCancelByRideIdPost
+      produces:
+      - application/json
+      parameters:
+      - name: rideId
+        in: path
+        required: true
+        type: string
+        description: ''
+      - name: body
+        in: body
+        required: true
+        description: ''
+        schema:
+          $ref: '#/definitions/CancelRequest'
+      responses:
+        204:
+          description: ''
+        400:
+          description: 'TODO: Add error message'
+          schema:
+            $ref: '#/definitions/CancellationError'
+        404:
+          description: 'TODO: Add error message'
+          schema: {}
+  /rides/{rideId}/rating:
+    put:
+      description: Rates the ride
+      summary: RidesRatingByRideId_PUT
+      tags:
+      - rides
+      operationId: RidesRatingByRideIdPut
+      produces:
+      - application/json
+      parameters:
+      - name: rideId
+        in: path
+        required: true
+        type: string
+        description: ''
+      - name: body
+        in: body
+        required: true
+        description: ''
+        schema:
+          $ref: '#/definitions/Rating'
+      responses:
+        204:
+          description: ''
+        400:
+          description: 'TODO: Add error message'
+          schema:
+            $ref: '#/definitions/ErrorError'
+        404:
+          description: 'TODO: Add error message'
+          schema: {}
+  /rides/{rideId}:
+    get:
+      description: Gets info about the ride
+      summary: RidesByRideId_GET
+      tags:
+      - rides
+      operationId: RidesByRideIdGet
+      produces:
+      - application/json
+      parameters:
+      - name: rideId
+        in: path
+        required: true
+        type: string
+        description: ''
+      responses:
+        200:
+          description: ''
+          schema:
+            $ref: '#/definitions/RideInfo'
+        400:
+          description: 'TODO: Add error message'
+          schema:
+            $ref: '#/definitions/ErrorError'
+        404:
+          description: 'TODO: Add error message'
+          schema: {}
+  /rides:
+    post:
+      description: Creates a new ride
+      summary: Rides_POST
+      tags:
+      - rides
+      operationId: RidesPost
+      produces:
+      - application/json
+      parameters:
+      - name: body
+        in: body
+        required: true
+        description: ''
+        schema:
+          $ref: '#/definitions/RidesRequest'
+      responses:
+        201:
+          description: ''
+          schema:
+            $ref: '#/definitions/RideInfo'
+        400:
+          description: 'TODO: Add error message'
+          schema:
+            $ref: '#/definitions/RideCreationError'
+  /nearbyDrivers:
+    post:
+      description: Returns list of nearby drivers
+      summary: NearbyDrivers_POST
+      tags:
+      - nearbyDrivers
+      operationId: NearbyDriversPost
+      produces:
+      - application/json
+      parameters:
+      - name: body
+        in: body
+        required: true
+        description: ''
+        schema:
+          $ref: '#/definitions/NearbydriversRequest'
+      responses:
+        200:
+          description: ''
+          schema:
+            $ref: '#/definitions/NearbyDrivers'
+  /priceEstimate:
+    post:
+      summary: PriceEstimate_POST
+      tags:
+      - priceEstimate
+      operationId: PriceEstimatePost
+      produces:
+      - application/json
+      parameters:
+      - name: body
+        in: body
+        required: true
+        description: ''
+        schema:
+          $ref: '#/definitions/RouteInfo'
+      responses:
+        200:
+          description: ''
+          schema:
+            $ref: '#/definitions/PriceestimateResponse'
+        400:
+          description: 'TODO: Add error message'
+          schema:
+            $ref: '#/definitions/ErrorError'
+definitions:
+  RouteInfo:
+    title: RouteInfo
+    type: object
+    properties:
+      pickup:
+        $ref: '#/definitions/Coordinates'
+      destination:
+        $ref: '#/definitions/Coordinates'
+    required:
+    - pickup
+    - destination
+  Coordinates:
+    title: Coordinates
+    type: object
+    properties:
+      lat:
+        description: ''
+        type: number
+        format: double
+      lon:
+        description: ''
+        type: number
+        format: double
+    required:
+    - lat
+    - lon
+  Ride:
+    title: Ride
+    type: object
+    properties:
+      pickup:
+        $ref: '#/definitions/GeoPoint'
+      destination:
+        $ref: '#/definitions/GeoPoint'
+      passenger:
+        $ref: '#/definitions/Passenger'
+      id:
+        description: >-
+          Unique ID send by partner which will be used in reports
+
+          and to detect duplicate POSTs
+        type: string
+        maxLength: 40
+        pattern: '[a-zA-Z0-9-_]+'
+    required:
+    - pickup
+    - passenger
+    - id
+  GeoPoint:
+    title: GeoPoint
+    allOf:
+    - $ref: '#/definitions/Coordinates'
+    - type: object
+      properties:
+        placeName:
+          description: comma separated address parts, ie. Truhlářská 15, 110 00 Praha
+          type: string
+      required:
+      - placeName
+  Passenger:
+    title: Passenger
+    type: object
+    properties:
+      name:
+        description: ''
+        type: string
+      phoneNumber:
+        description: Phone number with international prefix
+        type: string
+    required:
+    - name
+    - phoneNumber
+  RideInfo:
+    title: RideInfo
+    allOf:
+    - $ref: '#/definitions/Ride'
+    - type: object
+      properties:
+        status:
+          $ref: '#/definitions/StatusEnum'
+        canceledBy:
+          $ref: '#/definitions/CanceledByEnum'
+        estimatedPrice:
+          $ref: '#/definitions/Money'
+        driver:
+          $ref: '#/definitions/Driver'
+        car:
+          $ref: '#/definitions/Car'
+        taxiPosition:
+          $ref: '#/definitions/Coordinates'
+        arrivalEstimateAt:
+          description: >-
+            Estimate of the taxi arrival to the pickup point.
+
+            Not updated in case of delay.
+
+            (available when the ride is ACCEPTED)
+          type: string
+          format: date-time
+        completedAt:
+          description: When was the ride finished/cancelled
+          type: string
+          format: date-time
+        bill:
+          $ref: '#/definitions/Bill'
+        links:
+          $ref: '#/definitions/Links'
+      required:
+      - status
+      - links
+  StatusEnum:
+    title: statusEnum
+    description: >-
+      PROCESSING - ride is being processed, driver not found yet. Transitions to ACCEPTED or REJECTED\n
+
+      ACCEPTED - driver found and selected. Transitions to WAITING or CANCELLED\n
+
+      WAITING - driver is waiting on pickup location. Transitions to ON_BOARD or CANCELLED\n
+
+      ON_BOARD - passenger on board. Transitions to COMPLETED\n
+
+      COMPLETED - ride finished\n
+
+      CANCELLED - ride cancelled\n
+
+      REJECTED - could not find taxi in time\n
+    example: PROCESSING
+    type: string
+    enum:
+    - PROCESSING
+    - ACCEPTED
+    - WAITING
+    - ON_BOARD
+    - COMPLETED
+    - CANCELLED
+    - REJECTED
+  CanceledByEnum:
+    title: canceledByEnum
+    example: PASSENGER
+    type: string
+    enum:
+    - PASSENGER
+    - DRIVER
+  Money:
+    title: Money
+    type: object
+    properties:
+      amount:
+        description: ''
+        type: number
+        format: double
+      ccy:
+        description: ''
+        type: string
+    required:
+    - amount
+    - ccy
+  Driver:
+    title: Driver
+    type: object
+    properties:
+      name:
+        description: ''
+        type: string
+      phoneNumber:
+        description: Phone number to driver (goes through exchange)
+        type: string
+      image:
+        description: ''
+        type: string
+    required:
+    - name
+    - image
+  Car:
+    title: Car
+    type: object
+    properties:
+      color:
+        $ref: '#/definitions/Color'
+      brand:
+        description: ''
+        type: string
+      model:
+        description: ''
+        type: string
+      licencePlate:
+        description: ''
+        type: string
+    required:
+    - color
+    - brand
+    - model
+    - licencePlate
+  Color:
+    title: color
+    type: object
+    properties:
+      id:
+        $ref: '#/definitions/IdEnum'
+    required:
+    - id
+  IdEnum:
+    title: idEnum
+    example: BLACK
+    type: string
+    enum:
+    - BLACK
+    - BLUE
+    - BROWN
+    - GREEN
+    - ORANGE
+    - PURPLE
+    - RED
+    - SILVER
+    - WHITE
+    - YELLOW
+  Bill:
+    title: bill
+    description: Price, will be available once the ride is FINISHED
+    type: object
+    properties:
+      amount:
+        $ref: '#/definitions/Money'
+      taximeterAmount:
+        $ref: '#/definitions/Money'
+    required:
+    - amount
+    - taximeterAmount
+  Links:
+    title: links
+    type: object
+    properties:
+      self:
+        description: ''
+        type: string
+      rating:
+        description: ''
+        type: string
+      cancel:
+        description: ''
+        type: string
+    required:
+    - self
+    - rating
+    - cancel
+  Rating:
+    title: Rating
+    type: object
+    properties:
+      rating:
+        description: Rating of the driver, 1 is the worst, 5 is the best
+        type: integer
+        minimum: 1
+        maximum: 5
+        format: int32
+      comment:
+        description: ''
+        type: string
+    required:
+    - rating
+    - comment
+  Header:
+    title: Header
+    type: object
+    properties:
+      name:
+        description: ''
+        type: string
+      value:
+        description: ''
+        type: string
+    required:
+    - name
+    - value
+  NearbyDriver:
+    title: NearbyDriver
+    type: object
+    properties:
+      position:
+        $ref: '#/definitions/Coordinates'
+    required:
+    - position
+  NearbyDrivers:
+    title: NearbyDrivers
+    type: object
+    properties:
+      drivers:
+        description: ''
+        type: array
+        items:
+          $ref: '#/definitions/NearbyDriver'
+    required:
+    - drivers
+  WebHookEvent:
+    title: WebHookEvent
+    type: object
+    properties:
+      eventId:
+        description: Unique event identifier
+        type: string
+      eventType:
+        description: status_changed - Ride status changed Clients have to ignore unknown eventTypes
+        example: status_changed
+        type: string
+        default: status_changed
+      timestamp:
+        description: When the event occured.
+        type: string
+        format: date-time
+    required:
+    - eventId
+    - eventType
+    - timestamp
+  RideStatusChangedEvent:
+    title: RideStatusChangedEvent
+    allOf:
+    - $ref: '#/definitions/WebHookEvent'
+    - type: object
+      properties:
+        rideId:
+          description: ''
+          type: string
+        status:
+          description: ''
+          type: string
+        links:
+          $ref: '#/definitions/Links21'
+      required:
+      - rideId
+      - status
+      - links
+  Links21:
+    title: links21
+    type: object
+    properties:
+      ride:
+        description: URI of the ride
+        type: string
+    required:
+    - ride
+  CancelRequest:
+    title: CancelRequest
+    type: object
+    properties:
+      reason:
+        $ref: '#/definitions/ReasonEnum'
+      comment:
+        description: Text comment about cancallation reason
+        type: string
+  ReasonEnum:
+    title: reasonEnum
+    example: JUST_TRYING
+    type: string
+    enum:
+    - JUST_TRYING
+    - HUGE_DELAY
+    - CHANGE_OF_PLANS
+    - OTHER
+  Error:
+    title: Error
+    type: object
+    properties:
+      code:
+        description: ''
+        type: string
+      message:
+        description: ''
+        type: string
+    required:
+    - code
+    - message
+  CodeEnum:
+    title: codeEnum
+    description: More error codes will follow
+    example: ride_create.invalid_pickup
+    type: string
+    enum:
+    - ride_create.invalid_pickup
+    - ride_create.invalid_destination
+    - ride_create.invalid_phone_number
+    - ride_create.current_ride_exists
+  ErrorError:
+    title: Error_Error
+    type: object
+    properties:
+      code:
+        description: ''
+        type: string
+      message:
+        description: ''
+        type: string
+    required:
+    - code
+    - message
+  CancellationError:
+    title: CancellationError
+    allOf:
+    - $ref: '#/definitions/ErrorError'
+    - type: object
+      properties:
+        code:
+          description: ''
+          example: ride_cancel.incompatible_state
+          type: string
+          default: ride_cancel.incompatible_state
+      required:
+      - code
+  RideCreationError:
+    title: RideCreationError
+    allOf:
+    - $ref: '#/definitions/ErrorError'
+    - type: object
+      properties:
+        code:
+          $ref: '#/definitions/CodeEnum'
+      required:
+      - code
+  RidesRequest:
+    title: Rides request
+    allOf:
+    - $ref: '#/definitions/Ride'
+    - type: object
+      properties:
+        webHook:
+          $ref: '#/definitions/WebHook'
+  WebHook:
+    title: webHook
+    description: >-
+      If present, Liftago will send POST request to this URI, with given
+
+      headers and body containing RideStatusChangedEvent on every relevant
+
+      ride change.
+    type: object
+    properties:
+      url:
+        description: URI to be called
+        type: string
+      headers:
+        description: ''
+        type: array
+        items:
+          $ref: '#/definitions/Header'
+    required:
+    - url
+    - headers
+  NearbydriversRequest:
+    title: NearbyDrivers request
+    type: object
+    properties:
+      position:
+        $ref: '#/definitions/Coordinates'
+    required:
+    - position
+  PriceestimateResponse:
+    title: PriceEstimate response
+    type: object
+    properties:
+      estimate:
+        $ref: '#/definitions/Estimate'
+    required:
+    - estimate
+  Estimate:
+    title: estimate
+    type: object
+    properties:
+      lower:
+        description: Lower bound of the estimate
+        type: number
+        format: double
+      upper:
+        description: >-
+          Upper bound of the estimate. Final price may be higher in case
+
+          of different route or in case of unexpectedly high fare.
+        type: number
+        format: double
+      ccy:
+        description: ''
+        type: string
+    required:
+    - lower
+    - upper
+    - ccy
+tags:
+- name: rides
+  description: ''
+- name: nearbyDrivers
+  description: ''
+- name: priceEstimate
+  description: ''
